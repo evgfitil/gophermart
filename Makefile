@@ -9,4 +9,4 @@ db:
   		echo "waiting Postgres to be ready..."; \
   		sleep 1; \
   	done
-	podman exec -e PGPASSWORD=${POSTGRES_PASSWORD} gophermart psql -U postgres -c "CREATE DATABASE users;"
+	podman exec -e PGPASSWORD=${POSTGRES_PASSWORD} gophermart psql -U postgres -c "CREATE DATABASE gophermart;"
