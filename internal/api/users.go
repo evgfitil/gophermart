@@ -9,6 +9,33 @@ import (
 	"net/http"
 )
 
+func AuthHandler(db database.DBStorage) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		requestContext, cancel := context.WithTimeout(req.Context(), requestTimeout)
+		defer cancel()
+
+		var user models.User
+		if err := json.NewDecoder(req.Body).Decode(&user); err != nil {
+			http.Error(res, "invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		storedUserPassword, err := db.GetUserByUsername(requestContext, user.Username)
+		if err != nil {
+			http.Error(res, "user not found", http.StatusUnauthorized)
+			return
+		}
+
+		if err = bcrypt.CompareHashAndPassword([]byte(storedUserPassword), []byte(user.Password)); err != nil {
+			http.Error(res, "wrong username or password", http.StatusUnauthorized)
+			return
+		}
+
+		res.WriteHeader(http.StatusOK)
+		res.Write([]byte("logged in successfully"))
+	}
+}
+
 func RegisterHandler(db database.DBStorage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		requestContext, cancel := context.WithTimeout(req.Context(), requestTimeout)

@@ -13,6 +13,7 @@ func ApiRouter(db database.DBStorage) chi.Router {
 	r.Get("/ping", api.Ping(db))
 	r.Route("/api/user", func(r chi.Router) {
 		r.Post("/register", api.RegisterHandler(db))
+		r.Post("/login", api.AuthHandler(db))
 	})
 	return r
 }
