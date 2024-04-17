@@ -3,6 +3,11 @@ package api
 import (
 	"github.com/evgfitil/gophermart.git/internal/database"
 	"net/http"
+	"time"
+)
+
+const (
+	requestTimeout = 1 * time.Second
 )
 
 func Ping(db database.DBStorage) http.HandlerFunc {
