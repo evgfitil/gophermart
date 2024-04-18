@@ -21,7 +21,12 @@ const (
 var tokenAuth *jwtauth.JWTAuth
 
 func init() {
-	tokenAuth = jwtauth.New("HS256", []byte(os.Getenv("JWT_SECRET")), nil)
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		jwtSecret = "jwtDefaultSecret"
+	}
+
+	tokenAuth = jwtauth.New("HS256", []byte(jwtSecret), nil)
 }
 
 func generateToken(username string) (string, error) {
