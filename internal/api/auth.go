@@ -4,10 +4,40 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/evgfitil/gophermart.git/internal/database"
+	"github.com/evgfitil/gophermart.git/internal/logger"
 	"github.com/evgfitil/gophermart.git/internal/models"
+	"github.com/go-chi/jwtauth"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
+	"os"
+	"time"
 )
+
+const (
+	tokenExpireDuration = time.Hour * 3
+)
+
+var tokenAuth *jwtauth.JWTAuth
+
+func init() {
+	tokenAuth = jwtauth.New("HS256", []byte(os.Getenv("JWT_SECRET")), nil)
+}
+
+func generateToken(username string) (string, error) {
+	expirationTime := time.Now().Add(tokenExpireDuration)
+	_, tokenString, err := tokenAuth.Encode(jwt.MapClaims{
+		"user_id": username,
+		"exp":     expirationTime.Unix(),
+	})
+
+	if err != nil {
+		logger.Sugar.Infof("Something went wrong here: %v", err.Error())
+		return "", err
+	}
+
+	return tokenString, nil
+}
 
 func AuthHandler(db database.DBStorage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
@@ -31,6 +61,13 @@ func AuthHandler(db database.DBStorage) http.HandlerFunc {
 			return
 		}
 
+		tokenString, err := generateToken(user.Username)
+		if err != nil {
+			http.Error(res, "failed to generate auth token", http.StatusInternalServerError)
+			return
+		}
+
+		res.Header().Set("Authorization", "Bearer "+tokenString)
 		res.WriteHeader(http.StatusOK)
 		res.Write([]byte("logged in successfully"))
 	}
@@ -69,6 +106,13 @@ func RegisterHandler(db database.DBStorage) http.HandlerFunc {
 			return
 		}
 
+		tokenString, err := generateToken(user.Username)
+		if err != nil {
+			http.Error(res, "failed to generate auth token", http.StatusInternalServerError)
+			return
+		}
+
+		res.Header().Set("Authorization", "Bearer "+tokenString)
 		res.WriteHeader(http.StatusOK)
 		res.Write([]byte("User registered successfully"))
 	}

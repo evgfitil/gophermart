@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/caarlos0/env/v10"
+	"github.com/evgfitil/gophermart.git/internal/api"
 	"github.com/evgfitil/gophermart.git/internal/database"
 	"github.com/evgfitil/gophermart.git/internal/logger"
-	"github.com/evgfitil/gophermart.git/internal/router"
 	"github.com/spf13/cobra"
 	"net/http"
 	"os"
@@ -46,7 +46,7 @@ func runServer(cmd *cobra.Command, args []string) {
 
 	go func() {
 		logger.Sugar.Infoln("starting server")
-		err := http.ListenAndServe(cfg.RunAddress, router.ApiRouter(*db))
+		err := http.ListenAndServe(cfg.RunAddress, api.Router(*db))
 		if err != nil {
 			logger.Sugar.Fatalf("error starting server: %v", err)
 		}
