@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/evgfitil/gophermart.git/internal/database"
+	"context"
 	"net/http"
 	"time"
 )
@@ -10,9 +10,16 @@ const (
 	requestTimeout = 1 * time.Second
 )
 
-func Ping(db database.DBStorage) http.HandlerFunc {
+type Storage interface {
+	CreateUser(ctx context.Context, username string, passwordHash string) error
+	GetUserByUsername(ctx context.Context, username string) (string, error)
+	IsUserUnique(ctx context.Context, username string) (bool, error)
+	Ping(ctx context.Context) error
+}
+
+func Ping(s Storage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		err := db.Ping(req.Context())
+		err := s.Ping(req.Context())
 		if err != nil {
 			http.Error(res, err.Error(), http.StatusInternalServerError)
 			return

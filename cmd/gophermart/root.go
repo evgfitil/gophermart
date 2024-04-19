@@ -46,7 +46,7 @@ func runServer(cmd *cobra.Command, args []string) {
 
 	go func() {
 		logger.Sugar.Infoln("starting server")
-		err := http.ListenAndServe(cfg.RunAddress, api.Router(*db))
+		err := http.ListenAndServe(cfg.RunAddress, api.Router(db))
 		if err != nil {
 			logger.Sugar.Fatalf("error starting server: %v", err)
 		}

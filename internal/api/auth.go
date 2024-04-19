@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"github.com/evgfitil/gophermart.git/internal/database"
 	"github.com/evgfitil/gophermart.git/internal/logger"
 	"github.com/evgfitil/gophermart.git/internal/models"
 	"github.com/go-chi/jwtauth"
@@ -44,7 +43,7 @@ func generateToken(username string) (string, error) {
 	return tokenString, nil
 }
 
-func AuthHandler(db database.DBStorage) http.HandlerFunc {
+func AuthHandler(s Storage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		requestContext, cancel := context.WithTimeout(req.Context(), requestTimeout)
 		defer cancel()
@@ -55,7 +54,7 @@ func AuthHandler(db database.DBStorage) http.HandlerFunc {
 			return
 		}
 
-		storedUserPassword, err := db.GetUserByUsername(requestContext, user.Username)
+		storedUserPassword, err := s.GetUserByUsername(requestContext, user.Username)
 		if err != nil {
 			http.Error(res, "user not found", http.StatusUnauthorized)
 			return
@@ -78,7 +77,7 @@ func AuthHandler(db database.DBStorage) http.HandlerFunc {
 	}
 }
 
-func RegisterHandler(db database.DBStorage) http.HandlerFunc {
+func RegisterHandler(s Storage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		requestContext, cancel := context.WithTimeout(req.Context(), requestTimeout)
 		defer cancel()
@@ -89,7 +88,7 @@ func RegisterHandler(db database.DBStorage) http.HandlerFunc {
 			return
 		}
 
-		isUnique, err := db.IsUserUnique(requestContext, user.Username)
+		isUnique, err := s.IsUserUnique(requestContext, user.Username)
 		if err != nil {
 			http.Error(res, "database error", http.StatusInternalServerError)
 			return
@@ -105,7 +104,7 @@ func RegisterHandler(db database.DBStorage) http.HandlerFunc {
 			return
 		}
 
-		err = db.CreateUser(requestContext, user.Username, string(hashedPassword))
+		err = s.CreateUser(requestContext, user.Username, string(hashedPassword))
 		if err != nil {
 			http.Error(res, "error creating user", http.StatusInternalServerError)
 			return
