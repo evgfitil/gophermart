@@ -1,10 +1,15 @@
 package main
 
 import (
-	"fmt"
 	"github.com/caarlos0/env/v10"
+	"github.com/evgfitil/gophermart.git/internal/api"
+	"github.com/evgfitil/gophermart.git/internal/database"
 	"github.com/evgfitil/gophermart.git/internal/logger"
 	"github.com/spf13/cobra"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 const (
@@ -31,12 +36,22 @@ func runServer(cmd *cobra.Command, args []string) {
 		logger.Sugar.Fatalf("error parsing config: %v", err)
 	}
 
-	/*
-			!!! TO-DO
-		    1. add router and run http-server here
-		    2. remove this stub
-	*/
-	fmt.Println("Starting server...")
+	db, err := database.NewDBStorage(cfg.DatabaseURI)
+	if err != nil {
+		logger.Sugar.Fatalf("error connecting to database: %v", err)
+	}
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		logger.Sugar.Infoln("starting server")
+		err := http.ListenAndServe(cfg.RunAddress, api.Router(*db))
+		if err != nil {
+			logger.Sugar.Fatalf("error starting server: %v", err)
+		}
+	}()
+	<-quit
 }
 
 func Execute() error {
