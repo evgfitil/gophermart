@@ -87,6 +87,10 @@ func RegisterHandler(s Storage) http.HandlerFunc {
 			http.Error(res, "invalid request body", http.StatusBadRequest)
 			return
 		}
+		if user.Password == "" {
+			http.Error(res, "password is required", http.StatusBadRequest)
+			return
+		}
 
 		isUnique, err := s.IsUserUnique(requestContext, user.Username)
 		if err != nil {
