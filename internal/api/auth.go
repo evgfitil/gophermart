@@ -2,9 +2,9 @@ package api
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
-	"github.com/evgfitil/gophermart.git/internal/database"
-	"github.com/evgfitil/gophermart.git/internal/logger"
+	"errors"
 	"github.com/evgfitil/gophermart.git/internal/models"
 	"github.com/go-chi/jwtauth"
 	"github.com/golang-jwt/jwt/v5"
@@ -37,14 +37,13 @@ func generateToken(username string) (string, error) {
 	})
 
 	if err != nil {
-		logger.Sugar.Infof("Something went wrong here: %v", err.Error())
 		return "", err
 	}
 
 	return tokenString, nil
 }
 
-func AuthHandler(db database.DBStorage) http.HandlerFunc {
+func AuthHandler(s Storage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		requestContext, cancel := context.WithTimeout(req.Context(), requestTimeout)
 		defer cancel()
@@ -55,9 +54,18 @@ func AuthHandler(db database.DBStorage) http.HandlerFunc {
 			return
 		}
 
-		storedUserPassword, err := db.GetUserByUsername(requestContext, user.Username)
+		if user.Password == "" {
+			http.Error(res, "password is required", http.StatusBadRequest)
+			return
+		}
+
+		storedUserPassword, err := s.GetUserByUsername(requestContext, user.Username)
 		if err != nil {
-			http.Error(res, "user not found", http.StatusUnauthorized)
+			if errors.Is(err, sql.ErrNoRows) {
+				http.Error(res, "user not found", http.StatusUnauthorized)
+			} else {
+				http.Error(res, "database error", http.StatusInternalServerError)
+			}
 			return
 		}
 
@@ -78,7 +86,7 @@ func AuthHandler(db database.DBStorage) http.HandlerFunc {
 	}
 }
 
-func RegisterHandler(db database.DBStorage) http.HandlerFunc {
+func RegisterHandler(s Storage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		requestContext, cancel := context.WithTimeout(req.Context(), requestTimeout)
 		defer cancel()
@@ -88,8 +96,12 @@ func RegisterHandler(db database.DBStorage) http.HandlerFunc {
 			http.Error(res, "invalid request body", http.StatusBadRequest)
 			return
 		}
+		if user.Password == "" {
+			http.Error(res, "password is required", http.StatusBadRequest)
+			return
+		}
 
-		isUnique, err := db.IsUserUnique(requestContext, user.Username)
+		isUnique, err := s.IsUserUnique(requestContext, user.Username)
 		if err != nil {
 			http.Error(res, "database error", http.StatusInternalServerError)
 			return
@@ -105,7 +117,7 @@ func RegisterHandler(db database.DBStorage) http.HandlerFunc {
 			return
 		}
 
-		err = db.CreateUser(requestContext, user.Username, string(hashedPassword))
+		err = s.CreateUser(requestContext, user.Username, string(hashedPassword))
 		if err != nil {
 			http.Error(res, "error creating user", http.StatusInternalServerError)
 			return
