@@ -2,8 +2,9 @@ package api
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
-	"github.com/evgfitil/gophermart.git/internal/logger"
+	"errors"
 	"github.com/evgfitil/gophermart.git/internal/models"
 	"github.com/go-chi/jwtauth"
 	"github.com/golang-jwt/jwt/v5"
@@ -36,7 +37,6 @@ func generateToken(username string) (string, error) {
 	})
 
 	if err != nil {
-		logger.Sugar.Infof("Something went wrong here: %v", err.Error())
 		return "", err
 	}
 
@@ -54,9 +54,18 @@ func AuthHandler(s Storage) http.HandlerFunc {
 			return
 		}
 
+		if user.Password == "" {
+			http.Error(res, "password is required", http.StatusBadRequest)
+			return
+		}
+
 		storedUserPassword, err := s.GetUserByUsername(requestContext, user.Username)
 		if err != nil {
-			http.Error(res, "user not found", http.StatusUnauthorized)
+			if errors.Is(err, sql.ErrNoRows) {
+				http.Error(res, "user not found", http.StatusUnauthorized)
+			} else {
+				http.Error(res, "database error", http.StatusInternalServerError)
+			}
 			return
 		}
 
