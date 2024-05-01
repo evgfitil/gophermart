@@ -15,5 +15,8 @@ func Router(s Storage) chi.Router {
 		r.Post("/register", RegisterHandler(s))
 		r.Post("/login", AuthHandler(s))
 	})
+	r.With(jwtauth.Authenticator).Route("/api/user/orders", func(r chi.Router) {
+		r.Post("/", UploadOrderHandler(s))
+	})
 	return r
 }
