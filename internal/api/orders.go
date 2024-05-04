@@ -23,13 +23,14 @@ func UploadOrderHandler(s Storage) http.HandlerFunc {
 		}
 
 		if claims == nil {
-			http.Error(res, err.Error(), http.StatusUnauthorized)
+			http.Error(res, "no claims available", http.StatusUnauthorized)
 			return
 		}
 
 		username, ok := claims["user_id"].(string)
 		if !ok {
 			http.Error(res, err.Error(), http.StatusUnauthorized)
+			return
 		}
 
 		body, err := io.ReadAll(req.Body)
