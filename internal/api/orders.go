@@ -77,7 +77,7 @@ func UploadOrderHandler(s Storage) http.HandlerFunc {
 			}
 		}
 
-		res.WriteHeader(http.StatusOK)
+		res.WriteHeader(http.StatusAccepted)
 		res.Write([]byte("upload in successfully"))
 	}
 }
