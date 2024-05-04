@@ -29,7 +29,7 @@ func UploadOrderHandler(s Storage) http.HandlerFunc {
 
 		username, ok := claims["user_id"].(string)
 		if !ok {
-			http.Error(res, err.Error(), http.StatusUnauthorized)
+			http.Error(res, "No required claim available", http.StatusUnauthorized)
 			return
 		}
 
