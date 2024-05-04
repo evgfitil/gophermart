@@ -30,12 +30,20 @@ func (m *MockDB) GetUserByUsername(ctx context.Context, username string) (string
 	return args.String(0), args.Error(1)
 }
 
+func (m *MockDB) GetUserID(ctx context.Context, username string) (int, error) {
+	return 0, nil
+}
+
 func (m *MockDB) IsUserUnique(ctx context.Context, username string) (bool, error) {
 	args := m.Called(ctx, username)
 	return args.Bool(0), args.Error(1)
 }
 
 func (m *MockDB) Ping(ctx context.Context) error {
+	return nil
+}
+
+func (m *MockDB) ProcessOrder(ctx context.Context, order models.Order) error {
 	return nil
 }
 

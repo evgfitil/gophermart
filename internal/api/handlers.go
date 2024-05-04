@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"github.com/evgfitil/gophermart.git/internal/models"
 	"net/http"
 	"time"
 )
@@ -13,8 +14,10 @@ const (
 type Storage interface {
 	CreateUser(ctx context.Context, username string, passwordHash string) error
 	GetUserByUsername(ctx context.Context, username string) (string, error)
+	GetUserID(ctx context.Context, username string) (int, error)
 	IsUserUnique(ctx context.Context, username string) (bool, error)
 	Ping(ctx context.Context) error
+	ProcessOrder(ctx context.Context, order models.Order) error
 }
 
 func Ping(s Storage) http.HandlerFunc {

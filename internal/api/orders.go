@@ -2,11 +2,13 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"github.com/ShiraazMoollatjie/goluhn"
+	"github.com/evgfitil/gophermart.git/internal/apperrors"
+	"github.com/evgfitil/gophermart.git/internal/models"
 	"github.com/go-chi/jwtauth"
 	"io"
 	"net/http"
+	"time"
 )
 
 func UploadOrderHandler(s Storage) http.HandlerFunc {
@@ -39,12 +41,41 @@ func UploadOrderHandler(s Storage) http.HandlerFunc {
 		}
 
 		orderNumber := string(body)
+		if orderNumber == "" {
+			http.Error(res, "empty orderNumber", http.StatusUnprocessableEntity)
+			return
+		}
 		if err = goluhn.Validate(orderNumber); err != nil {
 			http.Error(res, err.Error(), http.StatusUnprocessableEntity)
 			return
 		}
 
-		fmt.Println(orderNumber, username)
+		var userID int
+		userID, err = s.GetUserID(requestContext, username)
+		if err != nil {
+			http.Error(res, "Internal server error", http.StatusInternalServerError)
+		}
+
+		order := models.Order{
+			UserID:      userID,
+			OrderNumber: orderNumber,
+			Status:      "NEW",
+			UploadedAt:  time.Now(),
+		}
+
+		if err = s.ProcessOrder(requestContext, order); err != nil {
+			switch err {
+			case apperrors.ErrOrderAlreadyExists:
+				http.Error(res, "order already exists", http.StatusOK)
+				return
+			case apperrors.ErrOrderNumberTaken:
+				http.Error(res, err.Error(), http.StatusConflict)
+				return
+			default:
+				http.Error(res, "internal server error", http.StatusInternalServerError)
+				return
+			}
+		}
 
 		res.WriteHeader(http.StatusOK)
 		res.Write([]byte("upload in successfully"))
