@@ -3,7 +3,9 @@ package database
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"github.com/evgfitil/gophermart.git/internal/apperrors"
+	"github.com/evgfitil/gophermart.git/internal/logger"
 	"github.com/evgfitil/gophermart.git/internal/models"
 )
 
@@ -19,6 +21,34 @@ func (db *DBStorage) returnOrderOwnerID(ctx context.Context, tx *sql.Tx, orderID
 	query := `SELECT user_id FROM orders WHERE order_number = $1`
 	err := tx.QueryRowContext(ctx, query, orderID).Scan(&ownerID)
 	return ownerID, err
+}
+
+func (db *DBStorage) GetOrders(ctx context.Context, userID int) ([]models.Order, error) {
+	var orders []models.Order
+
+	query := `SELECT order_number, status, accrual, uploaded_at FROM orders WHERE user_id = $1`
+	rows, err := db.conn.QueryContext(ctx, query, userID)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			logger.Sugar.Errorf("error retrieving orders: %v", err)
+		}
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var order models.Order
+		err = rows.Scan(&order.OrderNumber, &order.Status, &order.Accrual, &order.UploadedAt)
+		if err != nil {
+			logger.Sugar.Errorf("error retrieving order: %v", err)
+		}
+		orders = append(orders, order)
+	}
+	if err = rows.Err(); err != nil {
+		logger.Sugar.Errorf("error after row iteration: %v", err)
+		return nil, err
+	}
+
+	return orders, nil
 }
 
 func (db *DBStorage) ProcessOrder(ctx context.Context, order models.Order) error {

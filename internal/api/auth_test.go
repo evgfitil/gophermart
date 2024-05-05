@@ -34,6 +34,10 @@ func (m *MockDB) GetUserID(ctx context.Context, username string) (int, error) {
 	return 0, nil
 }
 
+func (m *MockDB) GetOrders(ctx context.Context, userID int) ([]models.Order, error) {
+	return nil, nil
+}
+
 func (m *MockDB) IsUserUnique(ctx context.Context, username string) (bool, error) {
 	args := m.Called(ctx, username)
 	return args.Bool(0), args.Error(1)

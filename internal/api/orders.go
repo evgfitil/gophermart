@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/ShiraazMoollatjie/goluhn"
 	"github.com/evgfitil/gophermart.git/internal/apperrors"
 	"github.com/evgfitil/gophermart.git/internal/models"
@@ -10,6 +11,43 @@ import (
 	"net/http"
 	"time"
 )
+
+func GetOrders(s Storage) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		requestContext, cancel := context.WithTimeout(req.Context(), requestTimeout)
+		defer cancel()
+
+		_, claims, err := jwtauth.FromContext(requestContext)
+		if err != nil {
+			http.Error(res, err.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		if claims == nil {
+			http.Error(res, "no claims available", http.StatusUnauthorized)
+			return
+		}
+
+		username, ok := claims["user_id"].(string)
+		if !ok {
+			http.Error(res, "No required claim available", http.StatusUnauthorized)
+			return
+		}
+
+		userID, err := s.GetUserID(requestContext, username)
+		if err != nil {
+			http.Error(res, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		userOrders, err := s.GetOrders(requestContext, userID)
+		if err != nil {
+			http.Error(res, "Internal server error", http.StatusInternalServerError)
+		}
+		res.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(res).Encode(userOrders)
+	}
+}
 
 func UploadOrderHandler(s Storage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
