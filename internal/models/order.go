@@ -5,7 +5,7 @@ import (
 )
 
 type Order struct {
-	ID          int       `json:"id"`
+	ID          int       `json:"-"`
 	UserID      int       `json:"-"`
 	OrderNumber string    `json:"order_number"`
 	Status      string    `json:"status"`
