@@ -16,43 +16,31 @@ import (
 	"time"
 )
 
-type MockDB struct {
+type MockUserStorage struct {
 	mock.Mock
 }
 
-func (m *MockDB) CreateUser(ctx context.Context, username string, passwordHash string) error {
+func (m *MockUserStorage) CreateUser(ctx context.Context, username string, passwordHash string) error {
 	args := m.Called(ctx, username, passwordHash)
 	return args.Error(0)
 }
 
-func (m *MockDB) GetUserByUsername(ctx context.Context, username string) (string, error) {
+func (m *MockUserStorage) GetUserByUsername(ctx context.Context, username string) (string, error) {
 	args := m.Called(ctx, username)
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockDB) GetUserID(ctx context.Context, username string) (int, error) {
+func (m *MockUserStorage) GetUserID(ctx context.Context, username string) (int, error) {
 	return 0, nil
 }
 
-func (m *MockDB) GetOrders(ctx context.Context, userID int) ([]models.Order, error) {
-	return nil, nil
-}
-
-func (m *MockDB) IsUserUnique(ctx context.Context, username string) (bool, error) {
+func (m *MockUserStorage) IsUserUnique(ctx context.Context, username string) (bool, error) {
 	args := m.Called(ctx, username)
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockDB) Ping(ctx context.Context) error {
-	return nil
-}
-
-func (m *MockDB) ProcessOrder(ctx context.Context, order models.Order) error {
-	return nil
-}
-
 func TestAuth(t *testing.T) {
-	mockStorage := new(MockDB)
+	mockStorage := new(MockUserStorage)
 
 	// Setup mocks for successful authentication
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
@@ -132,7 +120,7 @@ func TestAuth(t *testing.T) {
 }
 
 func TestRegisterHandler(t *testing.T) {
-	mockStorage := new(MockDB)
+	mockStorage := new(MockUserStorage)
 
 	// Setup mocks for successful user creation
 	mockStorage.On("CreateUser", mock.Anything, "test_user", mock.Anything).Return(nil)

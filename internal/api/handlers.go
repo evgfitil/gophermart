@@ -11,23 +11,50 @@ const (
 	requestTimeout = 1 * time.Second
 )
 
-type Storage interface {
+type UserStorage interface {
 	CreateUser(ctx context.Context, username string, passwordHash string) error
 	GetUserByUsername(ctx context.Context, username string) (string, error)
 	GetUserID(ctx context.Context, username string) (int, error)
-	GetOrders(ctx context.Context, userID int) ([]models.Order, error)
 	IsUserUnique(ctx context.Context, username string) (bool, error)
-	Ping(ctx context.Context) error
-	ProcessOrder(ctx context.Context, order models.Order) error
+
+	/*
+		Новые методы:
+		1. GetUserBalance(ctx context.Context, userID int) (float64, error) - метод для получения баланса пользователем
+		2. WithdrawBalance(ctx context.Context, userID int, amount float64) error - метод для списания баллов с проверкой их баланса
+	*/
+
 }
 
-func Ping(s Storage) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		err := s.Ping(req.Context())
-		if err != nil {
-			http.Error(res, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		res.WriteHeader(http.StatusOK)
-	}
+type OrderStorage interface {
+	GetOrders(ctx context.Context, userID int) ([]models.Order, error)
+	ProcessOrder(ctx context.Context, order models.Order) error
+
+	/*
+	   Новые методы:
+	   1. GetNewOrders(ctx context.Context) ([]models.Order, error) - получение заказов со статусом NEW для обработки сервисом loyaltyprocessor
+	   2. UpdateOrderAccrual(ctx context.Context, orderID int, accrual float64) error - обновление начислений баллов в заказах
+	*/
+}
+
+type TransactionStorage interface {
+	// AddTransaction добавляет новую транзакцию в бд
+	AddTransaction(ctx context.Context, transaction models.Transaction) (models.Transaction, error)
+
+	// GetTransactions возвращает список транзакций пользователя
+	GetTransactions(ctx context.Context, userID int) ([]models.Transaction, error)
+}
+
+// GetBalanceHandler возвращает баланс пользователя
+func GetBalanceHandler(us UserStorage, ts TransactionStorage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {}
+}
+
+// WithdrawBalanceHandler запрос на списание средств
+func WithdrawBalanceHandler(us UserStorage, ts TransactionStorage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {}
+}
+
+// GetWithdrawalsHandler возвращает список транзакций пользователя
+func GetWithdrawalsHandler(ts TransactionStorage, us UserStorage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {}
 }

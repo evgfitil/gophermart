@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func GetOrders(s Storage) http.HandlerFunc {
+func GetOrders(os OrderStorage, us UserStorage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		requestContext, cancel := context.WithTimeout(req.Context(), requestTimeout)
 		defer cancel()
@@ -34,13 +34,13 @@ func GetOrders(s Storage) http.HandlerFunc {
 			return
 		}
 
-		userID, err := s.GetUserID(requestContext, username)
+		userID, err := us.GetUserID(requestContext, username)
 		if err != nil {
 			http.Error(res, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 
-		userOrders, err := s.GetOrders(requestContext, userID)
+		userOrders, err := os.GetOrders(requestContext, userID)
 		if err != nil {
 			http.Error(res, "Internal server error", http.StatusInternalServerError)
 		}
@@ -49,7 +49,7 @@ func GetOrders(s Storage) http.HandlerFunc {
 	}
 }
 
-func UploadOrderHandler(s Storage) http.HandlerFunc {
+func UploadOrderHandler(os OrderStorage, us UserStorage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		requestContext, cancel := context.WithTimeout(req.Context(), requestTimeout)
 		defer cancel()
@@ -90,7 +90,7 @@ func UploadOrderHandler(s Storage) http.HandlerFunc {
 		}
 
 		var userID int
-		userID, err = s.GetUserID(requestContext, username)
+		userID, err = us.GetUserID(requestContext, username)
 		if err != nil {
 			http.Error(res, "Internal server error", http.StatusInternalServerError)
 		}
@@ -102,7 +102,7 @@ func UploadOrderHandler(s Storage) http.HandlerFunc {
 			UploadedAt:  time.Now(),
 		}
 
-		if err = s.ProcessOrder(requestContext, order); err != nil {
+		if err = os.ProcessOrder(requestContext, order); err != nil {
 			switch err {
 			case apperrors.ErrOrderAlreadyExists:
 				http.Error(res, "order already exists", http.StatusOK)

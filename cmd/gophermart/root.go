@@ -41,12 +41,14 @@ func runServer(cmd *cobra.Command, args []string) {
 		logger.Sugar.Fatalf("error connecting to database: %v", err)
 	}
 
+	userStorage := db
+	orderStorage := db
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
 		logger.Sugar.Infoln("starting server")
-		err := http.ListenAndServe(cfg.RunAddress, api.Router(db))
+		err := http.ListenAndServe(cfg.RunAddress, api.Router(orderStorage, userStorage))
 		if err != nil {
 			logger.Sugar.Fatalf("error starting server: %v", err)
 		}
