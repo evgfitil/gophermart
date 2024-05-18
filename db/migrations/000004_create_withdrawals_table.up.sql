@@ -1,9 +1,0 @@
-CREATE TABLE IF NOT EXISTS withdrawals (
-    id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL,
-    order_number VARCHAR(255) UNIQUE NOT NULL,
-    amount DECIMAL(10, 2) NOT NULL,
-    status VARCHAR(255) NOT NULL,
-    requested_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
