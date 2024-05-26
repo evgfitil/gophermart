@@ -31,8 +31,7 @@ type OrderStorage interface {
 
 	/*
 	   Новые методы:
-	   1. GetNewOrders(ctx context.Context) ([]models.Order, error) - получение заказов со статусом NEW для обработки сервисом loyaltyprocessor
-	   2. UpdateOrderAccrual(ctx context.Context, orderID int, accrual float64) error - обновление начислений баллов в заказах
+	   1. UpdateOrderAccrual(ctx context.Context, orderID int, accrual float64) error - обновление начислений баллов в заказах
 	*/
 }
 

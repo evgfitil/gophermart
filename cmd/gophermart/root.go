@@ -1,15 +1,18 @@
 package main
 
 import (
+	"context"
 	"github.com/caarlos0/env/v10"
 	"github.com/evgfitil/gophermart.git/internal/api"
 	"github.com/evgfitil/gophermart.git/internal/database"
 	"github.com/evgfitil/gophermart.git/internal/logger"
+	"github.com/evgfitil/gophermart.git/internal/services"
 	"github.com/spf13/cobra"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 const (
@@ -43,6 +46,9 @@ func runServer(cmd *cobra.Command, args []string) {
 
 	userStorage := db
 	orderStorage := db
+	transactionStorage := db
+	loyaltyProcessor := services.NewLoyaltyProcessorService(cfg.AccrualSystemAddress, orderStorage, transactionStorage)
+
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
@@ -53,6 +59,11 @@ func runServer(cmd *cobra.Command, args []string) {
 			logger.Sugar.Fatalf("error starting server: %v", err)
 		}
 	}()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	loyaltyProcessor.Start(ctx, 10*time.Second)
+
 	<-quit
 }
 

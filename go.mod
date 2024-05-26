@@ -12,12 +12,13 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/zap v1.27.0
-	golang.org/x/crypto v0.17.0
+	golang.org/x/crypto v0.23.0
 )
 
 require (
 	github.com/ShiraazMoollatjie/goluhn v0.0.0-20211017190329-0d86158c056a // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/go-resty/resty/v2 v2.13.1 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -38,7 +39,8 @@ require (
 	github.com/stretchr/objx v0.5.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
+	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/text v0.15.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

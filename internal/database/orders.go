@@ -51,6 +51,33 @@ func (db *DBStorage) GetOrders(ctx context.Context, userID int) ([]models.Order,
 	return orders, nil
 }
 
+func (db *DBStorage) GetNewOrders(ctx context.Context) ([]models.Order, error) {
+	var orders []models.Order
+
+	query := `SELECT id, order_number, user_id, status, uploaded_at FROM orders WHERE status = 'NEW'`
+	rows, err := db.conn.QueryContext(ctx, query)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			logger.Sugar.Errorf("error retrieving orders: %v", err)
+		}
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var order models.Order
+		err = rows.Scan(&order.ID, &order.OrderNumber, &order.UserID, &order.Status, &order.UploadedAt)
+		if err != nil {
+			logger.Sugar.Errorf("error retrieving order: %v", err)
+		}
+		orders = append(orders, order)
+	}
+	if err = rows.Err(); err != nil {
+		logger.Sugar.Errorf("error after row iteration: %v", err)
+		return nil, err
+	}
+	return orders, nil
+}
+
 func (db *DBStorage) ProcessOrder(ctx context.Context, order models.Order) error {
 	tx, err := db.conn.BeginTx(ctx, nil)
 	if err != nil {
