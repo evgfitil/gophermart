@@ -5,13 +5,15 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"github.com/evgfitil/gophermart.git/internal/models"
-	"github.com/go-chi/jwtauth"
-	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/go-chi/jwtauth"
+	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
+
+	"github.com/evgfitil/gophermart.git/internal/models"
 )
 
 const (

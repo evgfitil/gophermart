@@ -2,17 +2,19 @@ package main
 
 import (
 	"context"
-	"github.com/caarlos0/env/v10"
-	"github.com/evgfitil/gophermart.git/internal/api"
-	"github.com/evgfitil/gophermart.git/internal/database"
-	"github.com/evgfitil/gophermart.git/internal/logger"
-	"github.com/evgfitil/gophermart.git/internal/services"
-	"github.com/spf13/cobra"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/caarlos0/env/v10"
+	"github.com/spf13/cobra"
+
+	"github.com/evgfitil/gophermart.git/internal/api"
+	"github.com/evgfitil/gophermart.git/internal/database"
+	"github.com/evgfitil/gophermart.git/internal/logger"
+	"github.com/evgfitil/gophermart.git/internal/services"
 )
 
 const (

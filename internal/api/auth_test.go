@@ -6,14 +6,16 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"github.com/evgfitil/gophermart.git/internal/models"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/bcrypt"
+
+	"github.com/evgfitil/gophermart.git/internal/models"
 )
 
 type MockUserStorage struct {

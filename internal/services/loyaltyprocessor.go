@@ -3,13 +3,15 @@ package services
 import (
 	"context"
 	"encoding/json"
-	"github.com/evgfitil/gophermart.git/internal/logger"
-	"github.com/evgfitil/gophermart.git/internal/models"
-	"github.com/go-resty/resty/v2"
 	"math"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/go-resty/resty/v2"
+
+	"github.com/evgfitil/gophermart.git/internal/logger"
+	"github.com/evgfitil/gophermart.git/internal/models"
 )
 
 const (

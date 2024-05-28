@@ -3,13 +3,15 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"github.com/ShiraazMoollatjie/goluhn"
-	"github.com/evgfitil/gophermart.git/internal/apperrors"
-	"github.com/evgfitil/gophermart.git/internal/models"
-	"github.com/go-chi/jwtauth"
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/ShiraazMoollatjie/goluhn"
+	"github.com/go-chi/jwtauth"
+
+	"github.com/evgfitil/gophermart.git/internal/apperrors"
+	"github.com/evgfitil/gophermart.git/internal/models"
 )
 
 func GetOrders(os OrderStorage, us UserStorage) http.HandlerFunc {

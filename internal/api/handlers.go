@@ -2,9 +2,10 @@ package api
 
 import (
 	"context"
-	"github.com/evgfitil/gophermart.git/internal/models"
 	"net/http"
 	"time"
+
+	"github.com/evgfitil/gophermart.git/internal/models"
 )
 
 const (

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+
 	"github.com/evgfitil/gophermart.git/internal/apperrors"
 	"github.com/evgfitil/gophermart.git/internal/logger"
 	"github.com/evgfitil/gophermart.git/internal/models"

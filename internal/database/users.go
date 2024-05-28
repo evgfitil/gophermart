@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+
 	"github.com/evgfitil/gophermart.git/internal/models"
 )
 
