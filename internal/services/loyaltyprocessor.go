@@ -37,7 +37,7 @@ type TransactionStorage interface {
 // LoyaltyProcessorService опрашивает систему расчета начислений балоов, обновляет заказы и добавляет операцию зачисления баллов в таблицу транзакций
 
 type LoyaltyProcessorService struct {
-	AccrualUrl         string
+	AccrualURL         string
 	OrderStorage       OrderStorage
 	TransactionStorage TransactionStorage
 	client             *resty.Client
@@ -46,7 +46,7 @@ type LoyaltyProcessorService struct {
 func NewLoyaltyProcessorService(URL string, os OrderStorage, ts TransactionStorage) *LoyaltyProcessorService {
 	client := resty.New()
 	return &LoyaltyProcessorService{
-		AccrualUrl:         URL,
+		AccrualURL:         URL,
 		OrderStorage:       os,
 		TransactionStorage: ts,
 		client:             client,
@@ -59,7 +59,7 @@ func (lps *LoyaltyProcessorService) CheckAccrual(ctx context.Context, orders []m
 		resp, err := lps.client.R().
 			SetContext(ctx).
 			SetHeader("Content-Type", "application/json").
-			Get("http://" + lps.AccrualUrl + "/api/orders/" + order.OrderNumber)
+			Get("http://" + lps.AccrualURL + "/api/orders/" + order.OrderNumber)
 		if err != nil {
 			logger.Sugar.Errorln("Error making request to accrual service: ", err)
 			continue
