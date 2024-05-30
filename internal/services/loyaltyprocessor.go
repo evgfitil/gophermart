@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"math"
 	"net/http"
 	"strconv"
@@ -22,10 +23,8 @@ type OrderStorage interface {
 	GetNewOrders(ctx context.Context) ([]models.Order, error)
 	GetOrders(ctx context.Context, userID int) ([]models.Order, error)
 	ProcessOrder(ctx context.Context, order models.Order) error
-	/*
-	   TO-DO
-	   UpdateOrderAccrual(ctx context.Context, orderID int, accrual float64) error - обновление начислений баллов в заказах
-	*/
+	UpdateOrderAccrual(ctx context.Context, orderID int, accrual float64, transaction models.Transaction) error
+	UpdateOrderStatus(ctx context.Context, orderID int, status string) error
 }
 
 type TransactionStorage interface {
@@ -53,6 +52,20 @@ func NewLoyaltyProcessorService(URL string, os OrderStorage, ts TransactionStora
 		TransactionStorage: ts,
 		client:             client,
 	}
+}
+
+func (lps *LoyaltyProcessorService) updateOrder(ctx context.Context, order models.Order) error {
+	switch order.Status {
+	case "PROCESSED":
+		fmt.Println("PROCESSED")
+		//err := lps.OrderStorage.UpdateOrderAccrual(ctx, order.ID, order.Accrual, )
+	default:
+		if err := lps.OrderStorage.UpdateOrderStatus(ctx, order.ID, order.Status); err != nil {
+			logger.Sugar.Errorln("update order status failed", err)
+			return err
+		}
+	}
+	return nil
 }
 
 func (lps *LoyaltyProcessorService) CheckAccrual(ctx context.Context, orders []models.Order) {
@@ -101,6 +114,10 @@ func (lps *LoyaltyProcessorService) CheckAccrual(ctx context.Context, orders []m
 			logger.Sugar.Errorln("Error unmarshalling response from accrual service: ", err)
 		}
 		logger.Sugar.Infoln("Processed order ", order.OrderNumber, " with status ", result.Status)
+
+		if err = lps.updateOrder(ctx, order); err != nil {
+			logger.Sugar.Errorf("error updating order %s with status %s", order.OrderNumber, result.Status)
+		}
 	}
 }
 

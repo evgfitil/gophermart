@@ -111,3 +111,53 @@ func (db *DBStorage) ProcessOrder(ctx context.Context, order models.Order) error
 
 	return nil
 }
+
+func (db *DBStorage) UpdateOrderAccrual(ctx context.Context, orderID int, accrual float64, transaction models.Transaction) error {
+	tx, err := db.conn.BeginTx(ctx, nil)
+	if err != nil {
+		logger.Sugar.Errorf("error starting transaction: %v", err)
+	}
+	defer tx.Rollback()
+
+	updateOrderQuery := `UPDATE orders SET accrual = $1, status = 'PROCESSED' WHERE order_number = $2`
+	_, err = tx.ExecContext(ctx, updateOrderQuery, accrual, orderID)
+	if err != nil {
+		logger.Sugar.Errorf("error updating order: %v", err)
+		return err
+	}
+
+	addTransactionQuery := `INSERT INTO transactions (user_id, type, amount, order_id) VALUES ($1, $2, $3, $4)`
+	_, err = tx.ExecContext(ctx, addTransactionQuery, transaction.UserID, transaction.Type, transaction.Amount, orderID)
+	if err != nil {
+		logger.Sugar.Errorf("error adding transaction: %v", err)
+		return err
+	}
+
+	if err = tx.Commit(); err != nil {
+		logger.Sugar.Errorf("error committing transaction: %v", err)
+		return err
+	}
+	return nil
+}
+
+func (db *DBStorage) UpdateOrderStatus(ctx context.Context, orderID int, status string) error {
+	tx, err := db.conn.BeginTx(ctx, nil)
+	if err != nil {
+		logger.Sugar.Errorf("error starting transaction: %v", err)
+	}
+	defer tx.Rollback()
+
+	updateOrderStatusQuery := `UPDATE orders SET status = $1 WHERE order_number = $2`
+	_, err = tx.ExecContext(ctx, updateOrderStatusQuery, status, orderID)
+	if err != nil {
+		logger.Sugar.Errorf("error updating order: %v", err)
+		return err
+	}
+
+	if err = tx.Commit(); err != nil {
+		logger.Sugar.Errorf("error committing transaction: %v", err)
+		return err
+	}
+
+	return nil
+}
