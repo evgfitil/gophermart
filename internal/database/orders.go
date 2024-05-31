@@ -127,17 +127,10 @@ func (db *DBStorage) UpdateOrderAccrual(ctx context.Context, orderNumber string,
 	}
 
 	var userID, orderID int
-	getUserIDQuery := `SELECT user_id FROM orders WHERE order_number = $1`
-	row := tx.QueryRowContext(ctx, getUserIDQuery, orderNumber)
-	if err = row.Scan(&userID); err != nil {
+	getUserAndOrderIDQuery := `SELECT user_id, id FROM orders WHERE order_number = $1`
+	row := tx.QueryRowContext(ctx, getUserAndOrderIDQuery, orderNumber)
+	if err = row.Scan(&userID, &orderID); err != nil {
 		logger.Sugar.Errorf("error getting user_id for order: %v", err)
-		return err
-	}
-
-	getOrderIDQuery := `SELECT order_id FROM orders WHERE order_number = $1`
-	row = tx.QueryRowContext(ctx, getOrderIDQuery, orderNumber)
-	if err = row.Scan(&orderID); err != nil {
-		logger.Sugar.Errorf("error getting order_id for order: %v", err)
 		return err
 	}
 
