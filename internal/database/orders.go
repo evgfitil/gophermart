@@ -112,7 +112,7 @@ func (db *DBStorage) ProcessOrder(ctx context.Context, order models.Order) error
 	return nil
 }
 
-func (db *DBStorage) UpdateOrderAccrual(ctx context.Context, orderID int, accrual float64) error {
+func (db *DBStorage) UpdateOrderAccrual(ctx context.Context, orderNumber string, accrual float64) error {
 	tx, err := db.conn.BeginTx(ctx, nil)
 	if err != nil {
 		logger.Sugar.Errorf("error starting transaction: %v", err)
@@ -120,17 +120,25 @@ func (db *DBStorage) UpdateOrderAccrual(ctx context.Context, orderID int, accrua
 	defer tx.Rollback()
 
 	updateOrderQuery := `UPDATE orders SET accrual = $1, status = 'PROCESSED' WHERE order_number = $2`
-	_, err = tx.ExecContext(ctx, updateOrderQuery, accrual, orderID)
+	_, err = tx.ExecContext(ctx, updateOrderQuery, accrual, orderNumber)
 	if err != nil {
 		logger.Sugar.Errorf("error updating order: %v", err)
 		return err
 	}
 
-	var userID int
+	var userID, orderID int
 	getUserIDQuery := `SELECT user_id FROM orders WHERE order_number = $1`
-	row := tx.QueryRowContext(ctx, getUserIDQuery, orderID)
+	row := tx.QueryRowContext(ctx, getUserIDQuery, orderNumber)
 	if err = row.Scan(&userID); err != nil {
 		logger.Sugar.Errorf("error getting user_id for order: %v", err)
+		return err
+	}
+
+	getOrderIDQuery := `SELECT order_id FROM orders WHERE order_number = $1`
+	row = tx.QueryRowContext(ctx, getOrderIDQuery, orderNumber)
+	if err = row.Scan(&orderID); err != nil {
+		logger.Sugar.Errorf("error getting order_id for order: %v", err)
+		return err
 	}
 
 	addTransactionQuery := `INSERT INTO transactions (user_id, type, amount, order_id) VALUES ($1, $2, $3, $4)`
@@ -147,7 +155,7 @@ func (db *DBStorage) UpdateOrderAccrual(ctx context.Context, orderID int, accrua
 	return nil
 }
 
-func (db *DBStorage) UpdateOrderStatus(ctx context.Context, orderID int, status string) error {
+func (db *DBStorage) UpdateOrderStatus(ctx context.Context, orderNumber string, status string) error {
 	tx, err := db.conn.BeginTx(ctx, nil)
 	if err != nil {
 		logger.Sugar.Errorf("error starting transaction: %v", err)
@@ -155,7 +163,7 @@ func (db *DBStorage) UpdateOrderStatus(ctx context.Context, orderID int, status 
 	defer tx.Rollback()
 
 	updateOrderStatusQuery := `UPDATE orders SET status = $1 WHERE order_number = $2`
-	_, err = tx.ExecContext(ctx, updateOrderStatusQuery, status, orderID)
+	_, err = tx.ExecContext(ctx, updateOrderStatusQuery, status, orderNumber)
 	if err != nil {
 		logger.Sugar.Errorf("error updating order: %v", err)
 		return err

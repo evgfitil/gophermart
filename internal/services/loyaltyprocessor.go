@@ -23,8 +23,8 @@ type OrderStorage interface {
 	GetNewOrders(ctx context.Context) ([]models.Order, error)
 	GetOrders(ctx context.Context, userID int) ([]models.Order, error)
 	ProcessOrder(ctx context.Context, order models.Order) error
-	UpdateOrderAccrual(ctx context.Context, orderID int, accrual float64) error
-	UpdateOrderStatus(ctx context.Context, orderID int, status string) error
+	UpdateOrderAccrual(ctx context.Context, orderNumber string, accrual float64) error
+	UpdateOrderStatus(ctx context.Context, orderID string, status string) error
 }
 
 type TransactionStorage interface {
