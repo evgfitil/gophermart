@@ -112,7 +112,7 @@ func (db *DBStorage) ProcessOrder(ctx context.Context, order models.Order) error
 	return nil
 }
 
-func (db *DBStorage) UpdateOrderAccrual(ctx context.Context, orderID int, accrual float64, transaction models.Transaction) error {
+func (db *DBStorage) UpdateOrderAccrual(ctx context.Context, orderID int, accrual float64) error {
 	tx, err := db.conn.BeginTx(ctx, nil)
 	if err != nil {
 		logger.Sugar.Errorf("error starting transaction: %v", err)
@@ -126,8 +126,15 @@ func (db *DBStorage) UpdateOrderAccrual(ctx context.Context, orderID int, accrua
 		return err
 	}
 
+	var userID int
+	getUserIDQuery := `SELECT user_id FROM orders WHERE order_number = $1`
+	row := tx.QueryRowContext(ctx, getUserIDQuery, orderID)
+	if err = row.Scan(&userID); err != nil {
+		logger.Sugar.Errorf("error getting user_id for order: %v", err)
+	}
+
 	addTransactionQuery := `INSERT INTO transactions (user_id, type, amount, order_id) VALUES ($1, $2, $3, $4)`
-	_, err = tx.ExecContext(ctx, addTransactionQuery, transaction.UserID, transaction.Type, transaction.Amount, orderID)
+	_, err = tx.ExecContext(ctx, addTransactionQuery, userID, "accrual", accrual, orderID)
 	if err != nil {
 		logger.Sugar.Errorf("error adding transaction: %v", err)
 		return err

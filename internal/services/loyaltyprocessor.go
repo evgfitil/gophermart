@@ -23,7 +23,7 @@ type OrderStorage interface {
 	GetNewOrders(ctx context.Context) ([]models.Order, error)
 	GetOrders(ctx context.Context, userID int) ([]models.Order, error)
 	ProcessOrder(ctx context.Context, order models.Order) error
-	UpdateOrderAccrual(ctx context.Context, orderID int, accrual float64, transaction models.Transaction) error
+	UpdateOrderAccrual(ctx context.Context, orderID int, accrual float64) error
 	UpdateOrderStatus(ctx context.Context, orderID int, status string) error
 }
 
@@ -58,7 +58,10 @@ func (lps *LoyaltyProcessorService) updateOrder(ctx context.Context, order model
 	switch order.Status {
 	case "PROCESSED":
 		fmt.Println("PROCESSED")
-		//err := lps.OrderStorage.UpdateOrderAccrual(ctx, order.ID, order.Accrual, )
+		if err := lps.OrderStorage.UpdateOrderAccrual(ctx, order.ID, order.Accrual); err != nil {
+			logger.Sugar.Errorln("update order accrual failed", err)
+			return err
+		}
 	default:
 		if err := lps.OrderStorage.UpdateOrderStatus(ctx, order.ID, order.Status); err != nil {
 			logger.Sugar.Errorln("update order status failed", err)
