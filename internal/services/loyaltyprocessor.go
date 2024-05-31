@@ -58,12 +58,12 @@ func (lps *LoyaltyProcessorService) updateOrder(ctx context.Context, order model
 	switch order.Status {
 	case "PROCESSED":
 		fmt.Println("PROCESSED")
-		if err := lps.OrderStorage.UpdateOrderAccrual(ctx, order.ID, order.Accrual); err != nil {
+		if err := lps.OrderStorage.UpdateOrderAccrual(ctx, order.OrderNumber, order.Accrual); err != nil {
 			logger.Sugar.Errorln("update order accrual failed", err)
 			return err
 		}
 	default:
-		if err := lps.OrderStorage.UpdateOrderStatus(ctx, order.ID, order.Status); err != nil {
+		if err := lps.OrderStorage.UpdateOrderStatus(ctx, order.OrderNumber, order.Status); err != nil {
 			logger.Sugar.Errorln("update order status failed", err)
 			return err
 		}
@@ -106,19 +106,14 @@ func (lps *LoyaltyProcessorService) CheckAccrual(ctx context.Context, orders []m
 			retryCount++
 		}
 
-		var result struct {
-			Order   string  `json:"order"`
-			Status  string  `json:"status"`
-			Accrual float64 `json:"accrual"`
-		}
-
+		var result models.Order
 		err = json.Unmarshal(resp.Body(), &result)
 		if err != nil {
 			logger.Sugar.Errorln("Error unmarshalling response from accrual service: ", err)
 		}
 		logger.Sugar.Infoln("Processed order ", order.OrderNumber, " with status ", result.Status)
 
-		if err = lps.updateOrder(ctx, order); err != nil {
+		if err = lps.updateOrder(ctx, result); err != nil {
 			logger.Sugar.Errorf("error updating order %s with status %s", order.OrderNumber, result.Status)
 		}
 	}
