@@ -14,11 +14,7 @@ func Router(os OrderStorage, us UserStorage) chi.Router {
 		r.Post("/register", RegisterHandler(us))
 		r.Post("/login", AuthHandler(us))
 	})
-	//r.With(jwtauth.Authenticator).Route("/api/user/orders", func(r chi.Router) {
-	//	r.Post("/", UploadOrderHandler(os, us))
-	//	r.Get("/", GetOrders(os, us))
-	//})
-	r.Route("/api/user/orders", func(r chi.Router) {
+	r.With(jwtauth.Authenticator).Route("/api/user/orders", func(r chi.Router) {
 		r.Post("/", UploadOrderHandler(os, us))
 		r.Get("/", GetOrders(os, us))
 	})

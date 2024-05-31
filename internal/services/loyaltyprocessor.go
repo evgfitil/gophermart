@@ -30,7 +30,7 @@ type OrderStorage interface {
 	GetOrders(ctx context.Context, userID int) ([]models.Order, error)
 	ProcessOrder(ctx context.Context, order models.Order) error
 	UpdateOrderAccrual(ctx context.Context, orderNumber string, accrual float64) error
-	UpdateOrderStatus(ctx context.Context, orderID string, status string) error
+	UpdateOrderStatus(ctx context.Context, orderNumber string, status string) error
 }
 
 type TransactionStorage interface {
@@ -118,7 +118,7 @@ func (lps *LoyaltyProcessorService) CheckAccrual(ctx context.Context, orders []m
 		if err != nil {
 			logger.Sugar.Errorln("Error unmarshalling response from accrual service: ", err)
 		}
-		logger.Sugar.Infoln("Processed order ", order.OrderNumber, " with status ", result.Status)
+		logger.Sugar.Debugln("Processed order ", order.OrderNumber, " with status ", result.Status)
 
 		order.Status = result.Status
 		order.Accrual = result.Accrual
