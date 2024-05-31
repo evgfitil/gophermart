@@ -112,10 +112,10 @@ func (lps *LoyaltyProcessorService) CheckAccrual(ctx context.Context, orders []m
 		if err != nil {
 			logger.Sugar.Errorln("Error unmarshalling response from accrual service: ", err)
 		}
-		logger.Sugar.Infoln("Processed order ", order.OrderNumber, " with status ", result.Status)
+		logger.Sugar.Infoln("Processed order ", result.OrderNumber, " with status ", result.Status)
 
 		if err = lps.updateOrder(ctx, result); err != nil {
-			logger.Sugar.Errorf("error updating order %s with status %s", order.OrderNumber, result.Status)
+			logger.Sugar.Errorf("error updating order %s with status %s", result.OrderNumber, result.Status)
 		}
 	}
 }
