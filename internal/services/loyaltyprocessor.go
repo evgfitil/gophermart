@@ -19,6 +19,12 @@ const (
 	defaultRetrySeconds = 1
 )
 
+type accrualResponse struct {
+	Order   string  `json:"order"`
+	Status  string  `json:"status"`
+	Accrual float64 `json:"accrual,omitempty"`
+}
+
 type OrderStorage interface {
 	GetNewOrders(ctx context.Context) ([]models.Order, error)
 	GetOrders(ctx context.Context, userID int) ([]models.Order, error)
@@ -107,15 +113,18 @@ func (lps *LoyaltyProcessorService) CheckAccrual(ctx context.Context, orders []m
 			retryCount++
 		}
 
-		var result models.Order
+		var result accrualResponse
 		err = json.Unmarshal(resp.Body(), &result)
 		if err != nil {
 			logger.Sugar.Errorln("Error unmarshalling response from accrual service: ", err)
 		}
-		logger.Sugar.Infoln("Processed order ", result.OrderNumber, " with status ", result.Status)
+		logger.Sugar.Infoln("Processed order ", order.OrderNumber, " with status ", result.Status)
 
-		if err = lps.updateOrder(ctx, result); err != nil {
-			logger.Sugar.Errorf("error updating order %s with status %s", result.OrderNumber, result.Status)
+		order.Status = result.Status
+		order.Accrual = result.Accrual
+
+		if err = lps.updateOrder(ctx, order); err != nil {
+			logger.Sugar.Errorf("error updating order %s with status %s", order.OrderNumber, result.Status)
 		}
 	}
 }
