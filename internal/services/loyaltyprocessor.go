@@ -77,7 +77,7 @@ func (lps *LoyaltyProcessorService) CheckAccrual(ctx context.Context, orders []m
 		resp, err := lps.client.R().
 			SetContext(ctx).
 			SetHeader("Content-Type", "application/json").
-			Get("http://" + lps.AccrualURL + "/api/orders/" + order.OrderNumber)
+			Get(lps.AccrualURL + "/api/orders/" + order.OrderNumber)
 		if err != nil {
 			logger.Sugar.Errorln("Error making request to accrual service: ", err)
 			continue
