@@ -59,7 +59,7 @@ func (lps *LoyaltyProcessorService) updateOrder(ctx context.Context, order model
 	case "PROCESSED":
 		fmt.Println("PROCESSED")
 		if err := lps.OrderStorage.UpdateOrderAccrual(ctx, order.OrderNumber, order.Accrual); err != nil {
-			logger.Sugar.Debugf("OrderNumber: %v, OrderAccrual: %v", order.OrderNumber, order.Accrual)
+			logger.Sugar.Errorf("OrderNumber: %v, OrderAccrual: %v", order.OrderNumber, order.Accrual)
 			logger.Sugar.Errorln("update order accrual failed", err)
 			return err
 		}
