@@ -126,7 +126,8 @@ func (db *DBStorage) UpdateOrderAccrual(ctx context.Context, orderNumber string,
 		return err
 	}
 
-	var userID, orderID int
+	var userID int
+	var orderID string
 	getUserAndOrderIDQuery := `SELECT user_id, id FROM orders WHERE order_number = $1`
 	row := tx.QueryRowContext(ctx, getUserAndOrderIDQuery, orderNumber)
 	if err = row.Scan(&userID, &orderID); err != nil {
