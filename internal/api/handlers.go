@@ -14,6 +14,7 @@ const (
 
 type UserStorage interface {
 	CreateUser(ctx context.Context, username string, passwordHash string) error
+	GetUserBalance(ctx context.Context, userID int) (*models.Balance, error)
 	GetUserByUsername(ctx context.Context, username string) (string, error)
 	GetUserID(ctx context.Context, username string) (int, error)
 	IsUserUnique(ctx context.Context, username string) (bool, error)
