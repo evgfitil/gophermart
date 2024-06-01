@@ -38,11 +38,12 @@ type OrderStorage interface {
 }
 
 type TransactionStorage interface {
-	// AddTransaction добавляет новую транзакцию в бд
-	AddTransaction(ctx context.Context, transaction models.Transaction) (models.Transaction, error)
-
-	// GetTransactions возвращает список транзакций пользователя
-	GetTransactions(ctx context.Context, userID int) ([]models.Transaction, error)
+	WithdrawUserBalance(ctx context.Context, transaction *models.Transaction) error
+	//// AddTransaction добавляет новую транзакцию в бд
+	//AddTransaction(ctx context.Context, transaction models.Transaction) (models.Transaction, error)
+	//
+	//// GetTransactions возвращает список транзакций пользователя
+	//GetTransactions(ctx context.Context, userID int) ([]models.Transaction, error)
 }
 
 // GetBalanceHandler возвращает баланс пользователя
