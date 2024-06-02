@@ -52,7 +52,7 @@ func GetUserBalance(us UserStorage) http.HandlerFunc {
 	}
 }
 
-func WithdrawBalanceRequest(us UserStorage, ts TransactionStorage) http.HandlerFunc {
+func HandleBalanceWithdrawal(us UserStorage, ts TransactionStorage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		requestContext, cancel := context.WithTimeout(req.Context(), requestTimeout)
 		defer cancel()

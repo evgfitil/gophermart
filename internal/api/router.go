@@ -6,7 +6,7 @@ import (
 	"github.com/go-chi/jwtauth"
 )
 
-func Router(os OrderStorage, us UserStorage) chi.Router {
+func Router(os OrderStorage, us UserStorage, ts TransactionStorage) chi.Router {
 	r := chi.NewRouter()
 	r.Use(middleware.Compress(5))
 	r.Use(jwtauth.Verifier(tokenAuth))
@@ -16,6 +16,7 @@ func Router(os OrderStorage, us UserStorage) chi.Router {
 	})
 	r.With(jwtauth.Authenticator).Route("/api/user/balance", func(r chi.Router) {
 		r.Get("/", GetUserBalance(us))
+		r.Post("/withdraw", HandleBalanceWithdrawal(us, ts))
 	})
 	r.With(jwtauth.Authenticator).Route("/api/user/orders", func(r chi.Router) {
 		r.Post("/", UploadOrderHandler(os, us))
