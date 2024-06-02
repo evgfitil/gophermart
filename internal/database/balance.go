@@ -62,7 +62,7 @@ func (db *DBStorage) WithdrawUserBalance(ctx context.Context, transaction *model
 	}
 
 	var orderExists bool
-	orderQuery := `SELECT EXISTS(SELECT 1 FROM orders WHERE order_number = $1`
+	orderQuery := `SELECT EXISTS(SELECT 1 FROM orders WHERE order_number = $1)`
 	err = tx.QueryRowContext(ctx, orderQuery, transaction.OrderNumber).Scan(&orderExists)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		logger.Sugar.Errorf("error querying order for user balance: %v", err)
