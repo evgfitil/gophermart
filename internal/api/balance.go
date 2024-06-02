@@ -17,7 +17,14 @@ type transactionRequest struct {
 	Sum   float64 `json:"sum"`
 }
 
-func GetUserBalance(us UserStorage) http.HandlerFunc {
+type BalanceStorage interface {
+	GetWithdrawals(ctx context.Context, userID int) ([]models.Withdrawal, error)
+	GetUserBalance(ctx context.Context, userID int) (*models.Balance, error)
+	GetUserID(ctx context.Context, username string) (int, error)
+	WithdrawUserBalance(ctx context.Context, transaction *models.Transaction) error
+}
+
+func HandleGetUserBalance(bs BalanceStorage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		requestContext, cancel := context.WithTimeout(req.Context(), requestTimeout)
 		defer cancel()
@@ -39,12 +46,12 @@ func GetUserBalance(us UserStorage) http.HandlerFunc {
 			return
 		}
 
-		userID, err := us.GetUserID(requestContext, username)
+		userID, err := bs.GetUserID(requestContext, username)
 		if err != nil {
 			http.Error(res, "internal server error", http.StatusInternalServerError)
 			return
 		}
-		userBalance, err := us.GetUserBalance(requestContext, userID)
+		userBalance, err := bs.GetUserBalance(requestContext, userID)
 		if err != nil {
 			http.Error(res, err.Error(), http.StatusInternalServerError)
 		}
@@ -53,7 +60,7 @@ func GetUserBalance(us UserStorage) http.HandlerFunc {
 	}
 }
 
-func GetWithdrawals(us UserStorage, ts TransactionStorage) http.HandlerFunc {
+func HandleGetWithdrawals(bs BalanceStorage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		requestContext, cancel := context.WithTimeout(req.Context(), requestTimeout)
 		defer cancel()
@@ -75,14 +82,14 @@ func GetWithdrawals(us UserStorage, ts TransactionStorage) http.HandlerFunc {
 			return
 		}
 
-		userID, err := us.GetUserID(requestContext, username)
+		userID, err := bs.GetUserID(requestContext, username)
 		if err != nil {
 			http.Error(res, "internal server error", http.StatusInternalServerError)
 			return
 		}
 
 		var withdrawals []models.Withdrawal
-		withdrawals, err = ts.GetWithdrawals(requestContext, userID)
+		withdrawals, err = bs.GetWithdrawals(requestContext, userID)
 		if err != nil {
 			logger.Sugar.Errorf("error retrieving withdrawals: %v", err)
 			http.Error(res, "internal server error", http.StatusInternalServerError)
@@ -99,7 +106,7 @@ func GetWithdrawals(us UserStorage, ts TransactionStorage) http.HandlerFunc {
 	}
 }
 
-func HandleBalanceWithdrawal(us UserStorage, ts TransactionStorage) http.HandlerFunc {
+func HandleWithdrawBalance(bs BalanceStorage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		requestContext, cancel := context.WithTimeout(req.Context(), requestTimeout)
 		defer cancel()
@@ -121,7 +128,7 @@ func HandleBalanceWithdrawal(us UserStorage, ts TransactionStorage) http.Handler
 			return
 		}
 
-		userID, err := us.GetUserID(requestContext, username)
+		userID, err := bs.GetUserID(requestContext, username)
 		if err != nil {
 			http.Error(res, err.Error(), http.StatusInternalServerError)
 			return
@@ -144,7 +151,7 @@ func HandleBalanceWithdrawal(us UserStorage, ts TransactionStorage) http.Handler
 		currentTransaction.OrderNumber = currentRequest.Order
 		currentTransaction.Type = models.TransactionTypeWithdrawal
 
-		err = ts.WithdrawUserBalance(requestContext, &currentTransaction)
+		err = bs.WithdrawUserBalance(requestContext, &currentTransaction)
 		if err != nil {
 			switch err {
 			case apperrors.ErrInsufficientFunds:

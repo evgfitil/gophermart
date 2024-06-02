@@ -56,7 +56,7 @@ func TestAuth(t *testing.T) {
 	mockStorage.On("GetUserByUsername", mock.Anything, "wrong_user").Return("", sql.ErrNoRows)
 	mockStorage.On("GetUserByUsername", mock.Anything, "bad_user", mock.Anything).Return("", errors.New("internal error"))
 
-	ts := httptest.NewServer(AuthHandler(mockStorage))
+	ts := httptest.NewServer(HandleUserLogin(mockStorage))
 	defer ts.Close()
 
 	type want struct {
@@ -140,7 +140,7 @@ func TestRegisterHandler(t *testing.T) {
 	// Setup mocks for existing user check
 	mockStorage.On("IsUserUnique", mock.Anything, "exists_user").Return(false, nil)
 
-	ts := httptest.NewServer(RegisterHandler(mockStorage))
+	ts := httptest.NewServer(HandleUserRegistration(mockStorage))
 	defer ts.Close()
 
 	type want struct {

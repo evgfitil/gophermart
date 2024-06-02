@@ -48,15 +48,15 @@ func runServer(cmd *cobra.Command, args []string) {
 
 	userStorage := db
 	orderStorage := db
-	transactionStorage := db
-	loyaltyProcessor := services.NewLoyaltyProcessorService(cfg.AccrualSystemAddress, orderStorage, transactionStorage)
+	balanceStorage := db
+	loyaltyProcessor := services.NewLoyaltyProcessorService(cfg.AccrualSystemAddress, orderStorage)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
 		logger.Sugar.Infoln("starting server")
-		err := http.ListenAndServe(cfg.RunAddress, api.Router(orderStorage, userStorage, transactionStorage))
+		err := http.ListenAndServe(cfg.RunAddress, api.Router(orderStorage, userStorage, balanceStorage))
 		if err != nil {
 			logger.Sugar.Fatalf("error starting server: %v", err)
 		}

@@ -33,30 +33,18 @@ type OrderStorage interface {
 	UpdateOrderStatus(ctx context.Context, orderNumber string, status string) error
 }
 
-type TransactionStorage interface {
-	//// AddTransaction добавляет новую транзакцию в бд
-	//AddTransaction(ctx context.Context, transaction models.Transaction) (models.Transaction, error)
-	//
-	//// GetTransactions Возвращает список транзакций пользователя
-	//GetTransactions(ctx context.Context, userID int) ([]models.Transaction, error)
-}
-
-// LoyaltyProcessorService опрашивает систему расчета начислений балоов, обновляет заказы и добавляет операцию зачисления баллов в таблицу транзакций
-
 type LoyaltyProcessorService struct {
-	AccrualURL         string
-	OrderStorage       OrderStorage
-	TransactionStorage TransactionStorage
-	client             *resty.Client
+	AccrualURL   string
+	OrderStorage OrderStorage
+	client       *resty.Client
 }
 
-func NewLoyaltyProcessorService(URL string, os OrderStorage, ts TransactionStorage) *LoyaltyProcessorService {
+func NewLoyaltyProcessorService(URL string, os OrderStorage) *LoyaltyProcessorService {
 	client := resty.New()
 	return &LoyaltyProcessorService{
-		AccrualURL:         URL,
-		OrderStorage:       os,
-		TransactionStorage: ts,
-		client:             client,
+		AccrualURL:   URL,
+		OrderStorage: os,
+		client:       client,
 	}
 }
 

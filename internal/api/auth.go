@@ -22,6 +22,13 @@ const (
 
 var tokenAuth *jwtauth.JWTAuth
 
+type UserStorage interface {
+	CreateUser(ctx context.Context, username string, passwordHash string) error
+	GetUserByUsername(ctx context.Context, username string) (string, error)
+	GetUserID(ctx context.Context, username string) (int, error)
+	IsUserUnique(ctx context.Context, username string) (bool, error)
+}
+
 func init() {
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
@@ -45,7 +52,7 @@ func generateToken(username string) (string, error) {
 	return tokenString, nil
 }
 
-func AuthHandler(us UserStorage) http.HandlerFunc {
+func HandleUserLogin(us UserStorage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		requestContext, cancel := context.WithTimeout(req.Context(), requestTimeout)
 		defer cancel()
@@ -88,7 +95,7 @@ func AuthHandler(us UserStorage) http.HandlerFunc {
 	}
 }
 
-func RegisterHandler(us UserStorage) http.HandlerFunc {
+func HandleUserRegistration(us UserStorage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		requestContext, cancel := context.WithTimeout(req.Context(), requestTimeout)
 		defer cancel()

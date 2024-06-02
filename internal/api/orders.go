@@ -14,7 +14,12 @@ import (
 	"github.com/evgfitil/gophermart.git/internal/models"
 )
 
-func GetOrders(os OrderStorage, us UserStorage) http.HandlerFunc {
+type OrderStorage interface {
+	GetOrders(ctx context.Context, userID int) ([]models.Order, error)
+	ProcessOrder(ctx context.Context, order models.Order) error
+}
+
+func HandleGetUserOrders(os OrderStorage, us UserStorage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		requestContext, cancel := context.WithTimeout(req.Context(), requestTimeout)
 		defer cancel()
@@ -51,7 +56,7 @@ func GetOrders(os OrderStorage, us UserStorage) http.HandlerFunc {
 	}
 }
 
-func UploadOrderHandler(os OrderStorage, us UserStorage) http.HandlerFunc {
+func HandleUploadOrder(os OrderStorage, us UserStorage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		requestContext, cancel := context.WithTimeout(req.Context(), requestTimeout)
 		defer cancel()
