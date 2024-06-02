@@ -55,6 +55,11 @@ func (db *DBStorage) GetWithdrawals(ctx context.Context, userID int) ([]models.W
 		}
 		withdrawals = append(withdrawals, withdrawal)
 	}
+	if err = rows.Err(); err != nil {
+		logger.Sugar.Errorf("error after row iteration: %v", err)
+		return nil, err
+	}
+
 	return withdrawals, nil
 }
 

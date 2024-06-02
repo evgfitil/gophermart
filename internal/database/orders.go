@@ -135,7 +135,7 @@ func (db *DBStorage) UpdateOrderAccrual(ctx context.Context, orderNumber string,
 		return err
 	}
 
-	addTransactionQuery := `INSERT INTO transactions (user_id, type, amount, order_id) VALUES ($1, $2, $3, $4)`
+	addTransactionQuery := `INSERT INTO transactions (user_id, type, amount, order_number) VALUES ($1, $2, $3, $4)`
 	_, err = tx.ExecContext(ctx, addTransactionQuery, userID, "accrual", accrual, orderID)
 	if err != nil {
 		logger.Sugar.Errorf("error adding transaction: %v", err)
