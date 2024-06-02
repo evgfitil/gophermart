@@ -41,6 +41,10 @@ func (m *MockUserStorage) IsUserUnique(ctx context.Context, username string) (bo
 	return args.Bool(0), args.Error(1)
 }
 
+func (m *MockUserStorage) GetUserBalance(ctx context.Context, userID int) (*models.Balance, error) {
+	return nil, nil
+}
+
 func TestAuth(t *testing.T) {
 	mockStorage := new(MockUserStorage)
 
