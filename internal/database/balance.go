@@ -49,7 +49,7 @@ func (db *DBStorage) GetWithdrawals(ctx context.Context, userID int) ([]models.W
 
 	for rows.Next() {
 		var withdrawal models.Withdrawal
-		err = rows.Scan(&withdrawal.OrderNumber, &withdrawal.Amount, &withdrawal.CreatedAt)
+		err = rows.Scan(&withdrawal)
 		if err != nil {
 			logger.Sugar.Errorf("error retrieving withdrawals: %v", err)
 		}
