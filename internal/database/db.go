@@ -1,7 +1,6 @@
 package database
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -54,13 +53,4 @@ func NewDBStorage(databaseDSN string) (*DBStorage, error) {
 
 func (db *DBStorage) Close() error {
 	return db.conn.Close()
-}
-
-func (db *DBStorage) Ping(ctx context.Context) error {
-	err := db.conn.PingContext(ctx)
-	if err != nil {
-		logger.Sugar.Errorf("error connecting to database: %v", err)
-		return err
-	}
-	return nil
 }
