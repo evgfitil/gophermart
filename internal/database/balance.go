@@ -37,7 +37,7 @@ func (db *DBStorage) GetUserBalance(ctx context.Context, userID int) (*models.Ba
 
 func (db *DBStorage) GetWithdrawals(ctx context.Context, userID int) ([]models.Withdrawal, error) {
 	var withdrawals []models.Withdrawal
-	query := `SELECT (order_number, amount, created_at) FROM transactions WHERE user_id=$1 AND type = 'withdrawal' ORDER BY created_at DESC`
+	query := `SELECT order_number, amount, created_at FROM transactions WHERE user_id=$1 AND type = 'withdrawal' ORDER BY created_at DESC`
 	rows, err := db.conn.QueryContext(ctx, query, userID)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
@@ -49,7 +49,7 @@ func (db *DBStorage) GetWithdrawals(ctx context.Context, userID int) ([]models.W
 
 	for rows.Next() {
 		var withdrawal models.Withdrawal
-		err = rows.Scan(&withdrawal)
+		err = rows.Scan(&withdrawal.OrderNumber, &withdrawal.Amount, &withdrawal.CreatedAt)
 		if err != nil {
 			logger.Sugar.Errorf("error retrieving withdrawals: %v", err)
 		}
