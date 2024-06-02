@@ -28,13 +28,13 @@ func GetUserBalance(us UserStorage) http.HandlerFunc {
 		}
 
 		if claims == nil {
-			http.Error(res, err.Error(), http.StatusUnauthorized)
+			http.Error(res, "no claims available", http.StatusUnauthorized)
 			return
 		}
 
 		username, ok := claims["user_id"].(string)
 		if !ok {
-			http.Error(res, err.Error(), http.StatusUnauthorized)
+			http.Error(res, "no required claims available", http.StatusUnauthorized)
 			return
 		}
 
@@ -64,13 +64,13 @@ func HandleBalanceWithdrawal(us UserStorage, ts TransactionStorage) http.Handler
 		}
 
 		if claims == nil {
-			http.Error(res, err.Error(), http.StatusUnauthorized)
+			http.Error(res, "no claims available", http.StatusUnauthorized)
 			return
 		}
 
 		username, ok := claims["user_id"].(string)
 		if !ok {
-			http.Error(res, err.Error(), http.StatusUnauthorized)
+			http.Error(res, "no required claims available", http.StatusUnauthorized)
 			return
 		}
 
