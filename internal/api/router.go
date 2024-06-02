@@ -22,5 +22,8 @@ func Router(os OrderStorage, us UserStorage, ts TransactionStorage) chi.Router {
 		r.Post("/", UploadOrderHandler(os, us))
 		r.Get("/", GetOrders(os, us))
 	})
+	r.With(jwtauth.Authenticator).Route("/api/user/withdrawals", func(r chi.Router) {
+		r.Get("/", GetWithdrawals(us, ts))
+	})
 	return r
 }

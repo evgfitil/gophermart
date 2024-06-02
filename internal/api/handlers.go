@@ -39,6 +39,7 @@ type OrderStorage interface {
 
 type TransactionStorage interface {
 	WithdrawUserBalance(ctx context.Context, transaction *models.Transaction) error
+	GetWithdrawals(ctx context.Context, userID int) ([]models.Withdrawal, error)
 	//// AddTransaction добавляет новую транзакцию в бд
 	//AddTransaction(ctx context.Context, transaction models.Transaction) (models.Transaction, error)
 	//

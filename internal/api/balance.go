@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/evgfitil/gophermart.git/internal/apperrors"
+	"github.com/evgfitil/gophermart.git/internal/logger"
 	"github.com/evgfitil/gophermart.git/internal/models"
 )
 
@@ -49,6 +50,52 @@ func GetUserBalance(us UserStorage) http.HandlerFunc {
 		}
 		res.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(res).Encode(userBalance)
+	}
+}
+
+func GetWithdrawals(us UserStorage, ts TransactionStorage) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		requestContext, cancel := context.WithTimeout(req.Context(), requestTimeout)
+		defer cancel()
+
+		_, claims, err := jwtauth.FromContext(requestContext)
+		if err != nil {
+			http.Error(res, err.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		if claims == nil {
+			http.Error(res, "no claims available", http.StatusUnauthorized)
+			return
+		}
+
+		username, ok := claims["user_id"].(string)
+		if !ok {
+			http.Error(res, "no required claims available", http.StatusUnauthorized)
+			return
+		}
+
+		userID, err := us.GetUserID(requestContext, username)
+		if err != nil {
+			http.Error(res, "internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		var withdrawals []models.Withdrawal
+		withdrawals, err = ts.GetWithdrawals(requestContext, userID)
+		if err != nil {
+			logger.Sugar.Errorf("error retrieving withdrawals: %v", err)
+			http.Error(res, "internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		if len(withdrawals) == 0 {
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		res.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(res).Encode(withdrawals)
 	}
 }
 
