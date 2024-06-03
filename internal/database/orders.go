@@ -55,7 +55,7 @@ func (db *DBStorage) GetOrders(ctx context.Context, userID int) ([]models.Order,
 func (db *DBStorage) GetNewOrders(ctx context.Context) ([]models.Order, error) {
 	var orders []models.Order
 
-	query := `SELECT id, order_number, user_id, status, uploaded_at FROM orders WHERE status = 'NEW'`
+	query := `SELECT id, order_number, user_id, status, uploaded_at FROM orders WHERE status NOT IN ('PROCESSED', 'INVALID')`
 	rows, err := db.conn.QueryContext(ctx, query)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {

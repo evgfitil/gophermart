@@ -3,22 +3,23 @@ module github.com/evgfitil/gophermart.git
 go 1.21.9
 
 require (
+	github.com/ShiraazMoollatjie/goluhn v0.0.0-20211017190329-0d86158c056a
 	github.com/caarlos0/env/v10 v10.0.0
 	github.com/go-chi/chi/v5 v5.0.12
 	github.com/go-chi/jwtauth v1.2.0
+	github.com/go-resty/resty/v2 v2.13.1
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/golang-migrate/migrate/v4 v4.17.0
 	github.com/jackc/pgx/v5 v5.5.5
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.8.4
+	go.uber.org/mock v0.4.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.23.0
 )
 
 require (
-	github.com/ShiraazMoollatjie/goluhn v0.0.0-20211017190329-0d86158c056a // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/go-resty/resty/v2 v2.13.1 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
