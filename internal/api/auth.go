@@ -5,13 +5,15 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"github.com/evgfitil/gophermart.git/internal/models"
-	"github.com/go-chi/jwtauth"
-	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/go-chi/jwtauth"
+	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
+
+	"github.com/evgfitil/gophermart.git/internal/models"
 )
 
 const (
@@ -19,6 +21,13 @@ const (
 )
 
 var tokenAuth *jwtauth.JWTAuth
+
+type UserStorage interface {
+	CreateUser(ctx context.Context, username string, passwordHash string) error
+	GetUserByUsername(ctx context.Context, username string) (string, error)
+	GetUserID(ctx context.Context, username string) (int, error)
+	IsUserUnique(ctx context.Context, username string) (bool, error)
+}
 
 func init() {
 	jwtSecret := os.Getenv("JWT_SECRET")
@@ -43,7 +52,7 @@ func generateToken(username string) (string, error) {
 	return tokenString, nil
 }
 
-func AuthHandler(s Storage) http.HandlerFunc {
+func HandleUserLogin(us UserStorage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		requestContext, cancel := context.WithTimeout(req.Context(), requestTimeout)
 		defer cancel()
@@ -59,7 +68,7 @@ func AuthHandler(s Storage) http.HandlerFunc {
 			return
 		}
 
-		storedUserPassword, err := s.GetUserByUsername(requestContext, user.Username)
+		storedUserPassword, err := us.GetUserByUsername(requestContext, user.Username)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				http.Error(res, "user not found", http.StatusUnauthorized)
@@ -86,7 +95,7 @@ func AuthHandler(s Storage) http.HandlerFunc {
 	}
 }
 
-func RegisterHandler(s Storage) http.HandlerFunc {
+func HandleUserRegistration(us UserStorage) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		requestContext, cancel := context.WithTimeout(req.Context(), requestTimeout)
 		defer cancel()
@@ -101,7 +110,7 @@ func RegisterHandler(s Storage) http.HandlerFunc {
 			return
 		}
 
-		isUnique, err := s.IsUserUnique(requestContext, user.Username)
+		isUnique, err := us.IsUserUnique(requestContext, user.Username)
 		if err != nil {
 			http.Error(res, "database error", http.StatusInternalServerError)
 			return
@@ -117,7 +126,7 @@ func RegisterHandler(s Storage) http.HandlerFunc {
 			return
 		}
 
-		err = s.CreateUser(requestContext, user.Username, string(hashedPassword))
+		err = us.CreateUser(requestContext, user.Username, string(hashedPassword))
 		if err != nil {
 			http.Error(res, "error creating user", http.StatusInternalServerError)
 			return

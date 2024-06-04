@@ -1,15 +1,20 @@
 package main
 
 import (
-	"github.com/caarlos0/env/v10"
-	"github.com/evgfitil/gophermart.git/internal/api"
-	"github.com/evgfitil/gophermart.git/internal/database"
-	"github.com/evgfitil/gophermart.git/internal/logger"
-	"github.com/spf13/cobra"
+	"context"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
+
+	"github.com/caarlos0/env/v10"
+	"github.com/spf13/cobra"
+
+	"github.com/evgfitil/gophermart.git/internal/api"
+	"github.com/evgfitil/gophermart.git/internal/database"
+	"github.com/evgfitil/gophermart.git/internal/logger"
+	"github.com/evgfitil/gophermart.git/internal/services"
 )
 
 const (
@@ -41,16 +46,26 @@ func runServer(cmd *cobra.Command, args []string) {
 		logger.Sugar.Fatalf("error connecting to database: %v", err)
 	}
 
+	userStorage := db
+	orderStorage := db
+	balanceStorage := db
+	loyaltyProcessor := services.NewLoyaltyProcessorService(cfg.AccrualSystemAddress, orderStorage)
+
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
 		logger.Sugar.Infoln("starting server")
-		err := http.ListenAndServe(cfg.RunAddress, api.Router(db))
+		err := http.ListenAndServe(cfg.RunAddress, api.Router(orderStorage, userStorage, balanceStorage))
 		if err != nil {
 			logger.Sugar.Fatalf("error starting server: %v", err)
 		}
 	}()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	loyaltyProcessor.Start(ctx, 10*time.Second)
+
 	<-quit
 }
 

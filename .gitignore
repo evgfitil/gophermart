@@ -21,3 +21,5 @@ vendor/
 # IDEs directories
 .idea
 .vscode
+.local-source.sh
+*.DS_Store

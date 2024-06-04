@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+
 	"github.com/evgfitil/gophermart.git/internal/models"
 )
 
@@ -9,6 +10,15 @@ func (db *DBStorage) CreateUser(ctx context.Context, username string, passwordHa
 	_, err := db.conn.ExecContext(ctx,
 		`INSERT INTO users (username, password_hash) VALUES ($1, $2)`, username, passwordHash)
 	return err
+}
+
+func (db *DBStorage) GetUserID(ctx context.Context, username string) (int, error) {
+	var id int
+	row := db.conn.QueryRowContext(ctx, "SELECT id FROM users WHERE username = $1", username)
+	if err := row.Scan(&id); err != nil {
+		return 0, err
+	}
+	return id, nil
 }
 
 func (db *DBStorage) GetUserByUsername(ctx context.Context, username string) (string, error) {

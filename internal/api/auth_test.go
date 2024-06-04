@@ -6,51 +6,29 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"github.com/evgfitil/gophermart.git/internal/models"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/evgfitil/gophermart.git/internal/mocks"
+	"github.com/evgfitil/gophermart.git/internal/models"
 )
 
-type MockDB struct {
-	mock.Mock
-}
+func TestHandleUserLogin(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-func (m *MockDB) CreateUser(ctx context.Context, username string, passwordHash string) error {
-	args := m.Called(ctx, username, passwordHash)
-	return args.Error(0)
-}
-
-func (m *MockDB) GetUserByUsername(ctx context.Context, username string) (string, error) {
-	args := m.Called(ctx, username)
-	return args.String(0), args.Error(1)
-}
-
-func (m *MockDB) IsUserUnique(ctx context.Context, username string) (bool, error) {
-	args := m.Called(ctx, username)
-	return args.Bool(0), args.Error(1)
-}
-
-func (m *MockDB) Ping(ctx context.Context) error {
-	return nil
-}
-
-func TestAuth(t *testing.T) {
-	mockStorage := new(MockDB)
-
-	// Setup mocks for successful authentication
+	mockStorage := mocks.NewMockUserStorage(ctrl)
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("password"), bcrypt.DefaultCost)
-	mockStorage.On("GetUserByUsername", mock.Anything, "test_user").Return(string(hashedPassword), nil)
+	mockStorage.EXPECT().GetUserByUsername(gomock.Any(), "test_user").Return(string(hashedPassword), nil).AnyTimes()
+	mockStorage.EXPECT().GetUserByUsername(gomock.Any(), "wrong_user").Return("", sql.ErrNoRows).AnyTimes()
+	mockStorage.EXPECT().GetUserByUsername(gomock.Any(), "bad_user").Return("", errors.New("internal error")).AnyTimes()
 
-	// Setup mocks for user authentication errors
-	mockStorage.On("GetUserByUsername", mock.Anything, "wrong_user").Return("", sql.ErrNoRows)
-	mockStorage.On("GetUserByUsername", mock.Anything, "bad_user", mock.Anything).Return("", errors.New("internal error"))
-
-	ts := httptest.NewServer(AuthHandler(mockStorage))
+	ts := httptest.NewServer(HandleUserLogin(mockStorage))
 	defer ts.Close()
 
 	type want struct {
@@ -119,22 +97,18 @@ func TestAuth(t *testing.T) {
 	}
 }
 
-func TestRegisterHandler(t *testing.T) {
-	mockStorage := new(MockDB)
+func TestHandleUserRegistration(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	// Setup mocks for successful user creation
-	mockStorage.On("CreateUser", mock.Anything, "test_user", mock.Anything).Return(nil)
-	mockStorage.On("IsUserUnique", mock.Anything, "test_user").Return(true, nil)
-	mockStorage.On("GetUserByUsername", mock.Anything, "test_user").Return("test_user", nil)
+	mockStorage := mocks.NewMockUserStorage(ctrl)
+	mockStorage.EXPECT().CreateUser(gomock.Any(), "test_user", gomock.Any()).Return(nil).AnyTimes()
+	mockStorage.EXPECT().IsUserUnique(gomock.Any(), "test_user").Return(true, nil).AnyTimes()
+	mockStorage.EXPECT().CreateUser(gomock.Any(), "bad_user", gomock.Any()).Return(errors.New("internal error")).AnyTimes()
+	mockStorage.EXPECT().IsUserUnique(gomock.Any(), "bad_user").Return(true, nil).AnyTimes()
+	mockStorage.EXPECT().IsUserUnique(gomock.Any(), "exists_user").Return(false, nil).AnyTimes()
 
-	// Setup mocks for user creation errors
-	mockStorage.On("CreateUser", mock.Anything, "bad_user", mock.Anything).Return(errors.New("internal error"))
-	mockStorage.On("IsUserUnique", mock.Anything, "bad_user").Return(true, nil)
-
-	// Setup mocks for existing user check
-	mockStorage.On("IsUserUnique", mock.Anything, "exists_user").Return(false, nil)
-
-	ts := httptest.NewServer(RegisterHandler(mockStorage))
+	ts := httptest.NewServer(HandleUserRegistration(mockStorage))
 	defer ts.Close()
 
 	type want struct {
